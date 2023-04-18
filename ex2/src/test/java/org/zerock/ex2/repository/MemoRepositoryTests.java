@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerock.ex2.entity.Memo;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -74,7 +76,7 @@ public class MemoRepositoryTests {
         memoRepository.deleteById(mno);
     }
 
-    // JPA 페이징
+    // JPA 페이징 테스트
     @Test
     public void testPageDefault() {
         Pageable pageable = PageRequest.of(0, 10); // 1페이지, 10개씩
@@ -90,7 +92,7 @@ public class MemoRepositoryTests {
         System.out.println("first page?: " + result.isFirst());
     }
 
-    // JPA 페이징 + 정렬
+    // JPA 페이징/정렬 테스트
     @Test
     public void testPageWithSort() {
         Sort sort = Sort.by("mno").descending();
@@ -112,4 +114,30 @@ public class MemoRepositoryTests {
             System.out.println(memo);
         });
     }
+
+    // 쿼리메소드 테스트
+    @Test
+    public void testQueryMethod() {
+        List<Memo> list = memoRepository.findByMnoBetweenOrderByMnoDesc(70L, 80L);
+        for (Memo memo : list) {
+            System.out.println(memo);
+        }
+    }
+
+    // 쿼리메소드+Pageable 테스트
+    @Test
+    public void testQueryMethodWithPageable() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("mno").descending());
+        Page<Memo> result = memoRepository.findByMnoBetween(10L, 50L, pageable);
+        result.get().forEach(memo -> System.out.println(memo));
+    }
+
+    // 삭제 쿼리메소드 테스트
+    @Transactional // 내부적으로 SELECT와 DELETE 구문이 각각 실행됨 -> 하나의 트랜젝션으로 처리.
+    @Commit // deleteBy..의 테스트 코드는 롤백이 기본 -> @Commit으로 DB반영.
+    @Test
+    public void testDeleteQueryMethod() {
+        memoRepository.deleteMemoByMnoLessThan(10L);
+    }
+
 }

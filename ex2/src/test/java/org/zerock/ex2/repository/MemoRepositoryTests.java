@@ -140,4 +140,60 @@ public class MemoRepositoryTests {
         memoRepository.deleteMemoByMnoLessThan(10L);
     }
 
+    // @Query 테스트
+    @Test
+    public void testQueryAnnotation1(){
+        List<Memo> list = memoRepository.getListDesc();
+        for (Memo memo : list) {
+            System.out.println(memo);
+        }
+    }
+
+    // @Query 파라미터 바인딩 테스트
+    @Test
+    public void testQueryAnnotation2() {
+        int i = memoRepository.updateMemoText1(10L, "updated by @Query 1");
+        System.out.println(i + " <=======================================");
+
+        Memo memo = Memo.builder().mno(11L).memoText("updated by @Query 2").build();
+        int j = memoRepository.updateMemoText2(memo);
+        System.out.println(j + " <=======================================");
+    }
+
+    // @Query 페이징 테스트
+    @Test
+    public void testQueryAnnotation3() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("mno").ascending());
+        Page<Memo> pageResult = memoRepository.getListWithQuery(20L, pageable);
+        System.out.println("======================================");
+        pageResult.get().forEach(memo -> System.out.println(memo));
+    }
+
+    // @Query Object[] 리턴 테스트
+    @Test
+    public void testQueryAnnotation4() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("mno").ascending());
+        Page<Object[]> pageResult = memoRepository.getListWithQueryObject(75L, pageable);
+        System.out.println("======================================");
+        pageResult.get().forEach(objectArr -> {
+            for (int i = 0; i < objectArr.length; i++){
+                System.out.print(objectArr[i] + " ");
+            }
+            System.out.println();
+        });
+    }
+
+    // @Query 네이티브 쿼리 테스트
+    @Test
+    public void testQueryAnnotation5() {
+        List<Object[]> list = memoRepository.getNativeResult();
+        System.out.println("======================================");
+        for (Object[] objectArr : list) {
+            for (int i = 0; i < objectArr.length; i++){
+                System.out.print(objectArr[i] + " ");
+            }
+            System.out.println();
+        }
+    }
+
 }
